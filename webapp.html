@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Boggle Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 20px;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4, 60px);
+      grid-gap: 5px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .cell {
+      width: 60px;
+      height: 60px;
+      font-size: 24px;
+      font-weight: bold;
+      border: 2px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: white;
+    }
+    .highlight {
+      background-color: yellow;
+    }
+    .word-list {
+      margin-top: 10px;
+    }
+    .hidden {
+      display: none;
+    }
+    .word-summary, .all-words {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Boggle Game</h1>
+  <div class="board" id="board"></div>
+
+  <div>
+    <input type="text" id="wordInput" placeholder="Enter a word" />
+    <button onclick="submitWord()">Submit</button>
+    <button onclick="resetGame()">Reset</button>
+  </div>
+
+  <div class="word-list">
+    <h3>Your Words</h3>
+    <ul id="enteredWords"></ul>
+  </div>
+
+  <div class="word-summary hidden" id="summary">
+    <h3>Summary</h3>
+    <p id="score"></p>
+    <ul id="wordScores"></ul>
+  </div>
+
+  <div class="all-words hidden" id="allWordsSection">
+    <h3>All Possible Words</h3>
+    <ul id="allWords"></ul>
+    <button onclick="resetGame()">Play Again</button>
+  </div>
+
+  <p id="timer">Time Left: 120s</p>
+
+  <script>
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const board = document.getElementById('board');
+    const wordInput = document.getElementById('wordInput');
+    const enteredWords = document.getElementById('enteredWords');
+    const wordScores = document.getElementById('wordScores');
+    const summary = document.getElementById('summary');
+    const allWordsSection = document.getElementById('allWordsSection');
+    const allWordsList = document.getElementById('allWords');
+    const timerDisplay = document.getElementById('timer');
+    let boardLetters = [];
+    let words = [];
+    let allPossibleWords = [];
+    let timeLeft = 120;
+    let timer;
+    let dictionary = new Set();
+
+    async function loadDictionary() {
+      const response = await fetch('https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt');
+      const text = await response.text();
+      dictionary = new Set(text.split('\n').map(w => w.trim().toUpperCase()));
+    }
+
+    function getRandomLetter() {
+      return letters[Math.floor(Math.random() * letters.length)];
+    }
+
+    function createBoard() {
+      board.innerHTML = '';
+      boardLetters = [];
+      for (let i = 0; i < 16; i++) {
+        const letter = getRandomLetter();
+        boardLetters.push(letter);
+        const div = document.createElement('div');
+        div.classList.add('cell');
+        div.textContent = letter;
+        div.setAttribute('data-index', i);
+        board.appendChild(div);
+      }
+    }
+
+    function submitWord() {
+      if (timeLeft <= 0) return;
+      const word = wordInput.value.trim().toUpperCase();
+      if (word && !words.includes(word) && dictionary.has(word)) {
+        words.push(word);
+        const li = document.createElement('li');
+        li.textContent = word;
+        enteredWords.appendChild(li);
+      }
+      wordInput.value = '';
+    }
+
+    function startTimer() {
+      timer = setInterval(() => {
+        timeLeft--;
+        timerDisplay.textContent = `Time Left: ${timeLeft}s`;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function endGame() {
+      wordInput.disabled = true;
+      summary.classList.remove('hidden');
+      allWordsSection.classList.remove('hidden');
+
+      let total = 0;
+      wordScores.innerHTML = '';
+      words.forEach(word => {
+        const points = word.length;
+        total += points;
+        const li = document.createElement('li');
+        li.textContent = `${word} - ${points} pts`;
+        wordScores.appendChild(li);
+      });
+      document.getElementById('score').textContent = `Total Score: ${total}`;
+
+      allWordsList.innerHTML = '';
+      allPossibleWords.forEach(word => {
+        const li = document.createElement('li');
+        li.textContent = word;
+        li.addEventListener('mouseover', () => highlightWord(word));
+        li.addEventListener('mouseout', clearHighlights);
+        allWordsList.appendChild(li);
+      });
+    }
+
+    function resetGame() {
+      timeLeft = 120;
+      timerDisplay.textContent = `Time Left: ${timeLeft}s`;
+      clearInterval(timer);
+      wordInput.disabled = false;
+      words = [];
+      allPossibleWords = generateFakeWords(); // placeholder
+      enteredWords.innerHTML = '';
+      wordScores.innerHTML = '';
+      allWordsList.innerHTML = '';
+      summary.classList.add('hidden');
+      allWordsSection.classList.add('hidden');
+      wordInput.value = '';
+      createBoard();
+      startTimer();
+    }
+
+    function highlightWord(word) {
+      clearHighlights();
+      const cells = document.querySelectorAll('.cell');
+      word.split('').forEach(letter => {
+        for (let cell of cells) {
+          if (!cell.classList.contains('highlight') && cell.textContent === letter) {
+            cell.classList.add('highlight');
+            break;
+          }
+        }
+      });
+    }
+
+    function clearHighlights() {
+      document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('highlight'));
+    }
+
+    function generateFakeWords() {
+      return ['DOG', 'CAT', 'TREE', 'MOON', 'SUN']; // placeholder for real dictionary logic
+    }
+
+    wordInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') submitWord();
+    });
+
+    loadDictionary().then(resetGame);
+  </script>
+    <a href="index.html">Resume Page</a>
+    <br>
+    <a href="scratch.html">Scratch</a>
+
+  </body>
+</html>
