@@ -37,7 +37,7 @@
     .hidden {
       display: none;
     }
-    .word-summary, .all-words {
+    .word-summary {
       margin-top: 20px;
     }
   </style>
@@ -61,11 +61,6 @@
     <h3>Summary</h3>
     <p id="score"></p>
     <ul id="wordScores"></ul>
-  </div>
-
-  <div class="all-words hidden" id="allWordsSection">
-    <h3>All Possible Words</h3>
-    <ul id="allWords"></ul>
     <button onclick="resetGame()">Play Again</button>
   </div>
 
@@ -78,12 +73,9 @@
     const enteredWords = document.getElementById('enteredWords');
     const wordScores = document.getElementById('wordScores');
     const summary = document.getElementById('summary');
-    const allWordsSection = document.getElementById('allWordsSection');
-    const allWordsList = document.getElementById('allWords');
     const timerDisplay = document.getElementById('timer');
     let boardLetters = [];
     let words = [];
-    let allPossibleWords = [];
     let timeLeft = 120;
     let timer;
     let dictionary = new Set();
@@ -138,7 +130,6 @@
     function endGame() {
       wordInput.disabled = true;
       summary.classList.remove('hidden');
-      allWordsSection.classList.remove('hidden');
 
       let total = 0;
       wordScores.innerHTML = '';
@@ -150,15 +141,6 @@
         wordScores.appendChild(li);
       });
       document.getElementById('score').textContent = `Total Score: ${total}`;
-
-      allWordsList.innerHTML = '';
-      allPossibleWords.forEach(word => {
-        const li = document.createElement('li');
-        li.textContent = word;
-        li.addEventListener('mouseover', () => highlightWord(word));
-        li.addEventListener('mouseout', clearHighlights);
-        allWordsList.appendChild(li);
-      });
     }
 
     function resetGame() {
@@ -167,12 +149,9 @@
       clearInterval(timer);
       wordInput.disabled = false;
       words = [];
-      allPossibleWords = generateFakeWords(); // placeholder
       enteredWords.innerHTML = '';
       wordScores.innerHTML = '';
-      allWordsList.innerHTML = '';
       summary.classList.add('hidden');
-      allWordsSection.classList.add('hidden');
       wordInput.value = '';
       createBoard();
       startTimer();
@@ -195,19 +174,15 @@
       document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('highlight'));
     }
 
-    function generateFakeWords() {
-      return ['DOG', 'CAT', 'TREE', 'MOON', 'SUN']; // placeholder for real dictionary logic
-    }
-
     wordInput.addEventListener('keydown', e => {
       if (e.key === 'Enter') submitWord();
     });
 
     loadDictionary().then(resetGame);
   </script>
-    <a href="index.html">Resume Page</a>
-    <br>
-    <a href="scratch.html">Scratch</a>
 
-  </body>
+  <a href="index.html">Resume Page</a><br>
+  <a href="scratch.html">Scratch</a>
+
+</body>
 </html>
